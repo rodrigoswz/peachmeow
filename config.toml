@@ -5,32 +5,4 @@ package-name = "com.google.android.youtube"
 app-source = "rjaakash/peachmeow-store"
 patches-version = "all"
 cli-version = "all"
-
-[Music]
-package-name = "com.google.android.apps.youtube.music"
-app-source = "rjaakash/peachmeow-store"
-patches-version = "all"
-cli-version = "all"
-
-[Reddit]
-package-name = "com.reddit.frontpage"
-app-source = "rjaakash/peachmeow-store"
-patches-version = "all"
-cli-version = "all"
-
-["Proton VPN hoo-dles"]
-app-name = "ProtonVPN"
-package-name = "ch.protonvpn.android"
-app-source = "ProtonVPN/android-app"
-patches-source = "hoo-dles/morphe-patches"
-morphe-brand = "hoo-dles"
-version = "5.16.83.0"
-
-["Photos De-ReVanced"]
-app-name = "Photos"
-package-name = "com.google.android.apps.photos"
-app-source = "rjaakash/peachmeow-store"
-patches-source = "RookieEnough/De-ReVanced"
-morphe-brand = "De-ReVanced"
-version = "7.66.0.876414181"
-patcher-args = "-e 'Enable DCIM folders backup control'"
+patcher-args = "-e 'Hide Shorts components' -OhideShortsAppShortcut=true -OhideShortsWidget=true"
