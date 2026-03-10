@@ -11,8 +11,8 @@
   },
   "hoo-dles/morphe-patches": {
     "latest": {
-      "patch": "1.12.0",
-      "cli": "1.4.0"
+      "patch": "1.13.0",
+      "cli": "1.5.0"
     }
   },
   "RookieEnough/De-ReVanced": {
