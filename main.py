@@ -31,6 +31,9 @@ if not OWNER:
 
 HEAD = {"Authorization": f"token {PEACHMEOW_GITHUB_PAT}"}
 
+STATE_BRANCH = "state"
+INIT_MSG = "state: initial 🐱 PeachMeow metadata"
+
 def gh(url):
     r = requests.get(url, headers=HEAD, timeout=60)
     if r.status_code != 200:
@@ -487,15 +490,39 @@ else:
 
 Path(VERSIONS_FILE).write_text(json.dumps(versions, indent=2))
 
-subprocess.run(["git","config","user.name","github-actions[bot]"],check=True)
-subprocess.run(["git","config","user.email","41898282+github-actions[bot]@users.noreply.github.com"],check=True)
-subprocess.run(["git","add",VERSIONS_FILE],check=True)
+subprocess.run(["git","fetch","origin",STATE_BRANCH],check=False)
 
-msg = f"release: {patch_src} → {patch_ver}"
+remote_check = subprocess.run(
+    ["git","ls-remote","--heads","origin",STATE_BRANCH],
+    capture_output=True,
+    text=True
+)
 
-subprocess.run(["git","commit","-m",msg],check=True)
-subprocess.run(["git","pull","--rebase"],check=True)
-subprocess.run(["git","push"],check=True)
+if remote_check.stdout.strip() == "":
+    subprocess.run(["git","checkout","-b",STATE_BRANCH],check=True)
+
+    if not Path(VERSIONS_FILE).exists():
+        Path(VERSIONS_FILE).write_text("{}\n")
+
+    subprocess.run(["git","config","user.name","github-actions[bot]"],check=True)
+    subprocess.run(["git","config","user.email","41898282+github-actions[bot]@users.noreply.github.com"],check=True)
+
+    subprocess.run(["git","add",VERSIONS_FILE],check=True)
+    subprocess.run(["git","commit","-m",INIT_MSG],check=True)
+    subprocess.run(["git","push","-u","origin",STATE_BRANCH],check=True)
+
+else:
+    subprocess.run(["git","checkout","-B",STATE_BRANCH,f"origin/{STATE_BRANCH}"],check=True)
+
+    subprocess.run(["git","config","user.name","github-actions[bot]"],check=True)
+    subprocess.run(["git","config","user.email","41898282+github-actions[bot]@users.noreply.github.com"],check=True)
+
+    subprocess.run(["git","add",VERSIONS_FILE],check=True)
+
+    msg = f"release: {patch_src} → {patch_ver}"
+
+    subprocess.run(["git","commit","-m",msg],check=True)
+    subprocess.run(["git","push"],check=True)
 
 active_brands = {a.get("morphe-brand") or global_brand for a in apps.values()}
 cleanup_old_releases(active_brands, current_tag=tag)

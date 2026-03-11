@@ -94,7 +94,25 @@ def main():
     print("[+] Resolver started")
 
     cfg = load_config()
-    old = load_versions()
+
+    subprocess.run(["git","fetch","origin","state"], check=False)
+
+    remote_check = subprocess.run(
+        ["git","ls-remote","--heads","origin","state"],
+        capture_output=True,
+        text=True
+    )
+
+    state_exists = remote_check.stdout.strip() != ""
+
+    if not state_exists:
+        old = {}
+        versions_file_existed = False
+    else:
+        subprocess.run(["git","checkout","-B","state","origin/state"], check=True)
+
+        versions_file_existed = Path(VERSIONS_FILE).exists()
+        old = load_versions()
 
     global_patches = cfg.get("patches-source") or "MorpheApp/morphe-patches"
     global_mode = cfg.get("patches-version") or "latest"
@@ -114,27 +132,29 @@ def main():
 
     active = set(sources.keys())
 
-    dirty = False
-    removed = []
-
+    source_dirty = False
+    channel_dirty = False
+    removed_sources = []
+    removed_channels = []
+    
     for k in list(old.keys()):
         if k not in active:
             print("[-] Removing stale source from versions.json:", k)
             old.pop(k)
-            removed.append(k)
-            dirty = True
+            removed_sources.append(k)
+            source_dirty = True
 
-    if dirty:
+    if source_dirty and state_exists and versions_file_existed:
         Path(VERSIONS_FILE).write_text(json.dumps(old, indent=2))
 
         subprocess.run(["git","config","user.name","github-actions[bot]"], check=True)
         subprocess.run(["git","config","user.email","41898282+github-actions[bot]@users.noreply.github.com"], check=True)
         subprocess.run(["git","add",VERSIONS_FILE], check=True)
 
-        if len(removed) == 1:
-            msg = f"delete: stale patch source → {removed[0]}"
+        if len(removed_sources) == 1:
+            msg = f"delete: stale patch source → {removed_sources[0]}"
         else:
-            msg = "delete: stale patch sources → " + ", ".join(removed)
+            msg = "delete: stale patch sources → " + ", ".join(removed_sources)
 
         subprocess.run(["git","commit","-m", msg], check=False)
         subprocess.run(["git","push"], check=True)
@@ -148,18 +168,18 @@ def main():
         if mode == "latest":
             if "dev" in stored:
                 stored.pop("dev")
-                dirty = True
-                removed.append(src)
+                channel_dirty = True
+                removed_channels.append(src)
         elif mode == "dev":
             if "latest" in stored:
                 stored.pop("latest")
-                dirty = True
-                removed.append(src)
+                channel_dirty = True
+                removed_channels.append(src)
         elif mode != "all":
             if "latest" in stored and "dev" in stored:
                 stored.pop("dev")
-                dirty = True
-                removed.append(src)
+                channel_dirty = True
+                removed_channels.append(src)
 
         if mode != "all":
 
@@ -253,17 +273,17 @@ def main():
         else:
             trigger(item)
 
-    if dirty and removed:
+    if channel_dirty and removed_channels and state_exists and versions_file_existed:
         Path(VERSIONS_FILE).write_text(json.dumps(old, indent=2))
 
         subprocess.run(["git","config","user.name","github-actions[bot]"], check=True)
         subprocess.run(["git","config","user.email","41898282+github-actions[bot]@users.noreply.github.com"], check=True)
         subprocess.run(["git","add",VERSIONS_FILE], check=True)
 
-        if len(removed) == 1:
-            msg = f"delete: unused version channels → {removed[0]}"
+        if len(removed_channels) == 1:
+            msg = f"delete: unused version channel → {removed_channels[0]}"
         else:
-            msg = "delete: unused version channels → " + ", ".join(removed)
+            msg = "delete: unused version channels → " + ", ".join(removed_channels)
 
         subprocess.run(["git","commit","-m", msg], check=False)
         subprocess.run(["git","push"], check=True)
