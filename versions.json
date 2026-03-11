@@ -8,17 +8,5 @@
       "patch": "1.18.1-dev.2",
       "cli": "1.5.0"
     }
-  },
-  "hoo-dles/morphe-patches": {
-    "latest": {
-      "patch": "1.13.0",
-      "cli": "1.5.0"
-    }
-  },
-  "RookieEnough/De-ReVanced": {
-    "latest": {
-      "patch": "1.0.1",
-      "cli": "1.4.0"
-    }
   }
 }
