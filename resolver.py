@@ -191,13 +191,17 @@ def main():
         print("  stored dev      :", stored_dev)
 
         stable_changed = latest_stable and latest_stable != stored_latest
-        dev_changed = latest_dev and latest_dev != stored_dev
 
         if stable_changed:
             changed.append(("stable", src))
             continue
 
+        dev_changed = latest_dev and latest_dev != stored_dev
+
         if dev_changed:
+            dev_base = latest_dev.split("-dev", 1)[0]
+            if stored_latest and dev_base <= stored_latest:
+                continue
             changed.append(("dev", src))
 
     if not changed:
