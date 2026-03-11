@@ -499,8 +499,10 @@ remote_check = subprocess.run(
 )
 
 if remote_check.stdout.strip() == "":
-    subprocess.run(["git","checkout","-b",STATE_BRANCH],check=True)
-
+    subprocess.run(["git","checkout","--orphan",STATE_BRANCH],check=True)
+    subprocess.run(["git","rm","-rf","."],check=False)
+    subprocess.run(["git","clean","-fd"],check=False)
+    
     if not Path(VERSIONS_FILE).exists():
         Path(VERSIONS_FILE).write_text("{}\n")
 
