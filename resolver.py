@@ -267,7 +267,7 @@ def main():
                         if key == "patches-source":
                             current_src = val.strip().strip('"')
 
-                        src_match = (current_src == src)
+                        src_match = (current_src or global_patches) == src
                         if src_match and key in {"patches-version", "cli-version"}:
                             continue
 
