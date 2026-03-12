@@ -243,44 +243,7 @@ def main():
             channel, src = item
 
             if channel == "stable":
-                subprocess.run(["git","checkout","main"], check=True)
-
-                lines = []
-
-                current_block = None
-                current_src = None
-
-                for line in cfg_text.splitlines():
-
-                    stripped = line.strip()
-
-                    if stripped.startswith("[") and stripped.endswith("]"):
-                        current_block = stripped
-                        current_src = None
-                        lines.append(line)
-                        continue
-
-                    if "=" in line and current_block:
-                        key, val = line.split("=",1)
-                        key = key.strip()
-
-                        if key == "patches-source":
-                            current_src = val.strip().strip('"')
-
-                        src_match = (current_src or global_patches) == src
-                        if src_match and key in {"patches-version", "cli-version"}:
-                            continue
-
-                    lines.append(line)
-
-                Path(CONFIG_FILE).write_text("\n".join(lines))
-
-                print("----- CONFIG AFTER EDIT -----")
-                print(Path(CONFIG_FILE).read_text())
-                print("----- END CONFIG -----")
-
                 trigger(src, "stable")
-
             else:
                 trigger(src)
 
