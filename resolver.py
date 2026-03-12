@@ -275,6 +275,10 @@ def main():
 
                 Path(CONFIG_FILE).write_text("\n".join(lines))
 
+                print("----- CONFIG AFTER EDIT -----")
+                print(Path(CONFIG_FILE).read_text())
+                print("----- END CONFIG -----")
+
                 trigger(src)
 
             else:
