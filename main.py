@@ -514,6 +514,7 @@ if remote_check.stdout.strip() == "":
     subprocess.run(["git","push","-u","origin",STATE_BRANCH],check=True)
 
 else:
+    Path(VERSIONS_FILE).unlink(missing_ok=True)
     subprocess.run(["git","checkout","-B",STATE_BRANCH,f"origin/{STATE_BRANCH}"],check=True)
 
     subprocess.run(["git","config","user.name","github-actions[bot]"],check=True)
