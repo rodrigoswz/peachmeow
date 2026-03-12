@@ -235,6 +235,7 @@ def main():
             channel, src = item
 
             if channel == "stable":
+                subprocess.run(["git","checkout","main"], check=True)
 
                 lines = []
 
@@ -266,6 +267,7 @@ def main():
                 Path(CONFIG_FILE).write_text("\n".join(lines))
 
                 trigger(src)
+                subprocess.run(["git","checkout","state"], check=True)
 
             else:
                 trigger(src)
