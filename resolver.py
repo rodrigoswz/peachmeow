@@ -213,6 +213,10 @@ def main():
 
         stable_changed = latest_stable and latest_stable != stored_latest
 
+        if latest_stable and stored_latest is None and stored_dev is None:
+            changed.append(("stable", src))
+            continue
+
         if stable_changed:
             changed.append(("stable", src))
             continue
