@@ -6,6 +6,9 @@ on:
       source:
         required: false
         default: ""
+      mode:
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -42,8 +45,11 @@ jobs:
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
           PEACHMEOW_GITHUB_PAT: ${{ secrets.PEACHMEOW_GITHUB_PAT }}
         run: |
-          if [ -z "${{ github.event.inputs.source }}" ]; then
-            python3 main.py
-          else
-            python3 main.py --source "${{ github.event.inputs.source }}"
+          ARGS=""
+          if [ -n "${{ github.event.inputs.source }}" ]; then
+            ARGS="$ARGS --source '${{ github.event.inputs.source }}'"
           fi
+          if [ -n "${{ github.event.inputs.mode }}" ]; then
+            ARGS="$ARGS --mode '${{ github.event.inputs.mode }}'"
+          fi
+          python3 main.py $ARGS
