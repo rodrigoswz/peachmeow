@@ -4,6 +4,7 @@ import tomllib
 import requests
 import subprocess
 from pathlib import Path
+from packaging.version import Version
 
 CONFIG_FILE = "config.toml"
 VERSIONS_FILE = "versions.json"
@@ -27,7 +28,12 @@ def load_config():
 def load_versions():
     if not Path(VERSIONS_FILE).exists():
         return {}
-    return json.loads(Path(VERSIONS_FILE).read_text())
+
+    txt = Path(VERSIONS_FILE).read_text().strip()
+    if not txt:
+        return {}
+
+    return json.loads(txt)
 
 def resolve(repo, mode):
     r = requests.get(
@@ -74,27 +80,28 @@ def resolve_channels(repo):
     dev = None
 
     for x in rel:
-        if not latest and not x["prerelease"]:
-            latest = x["tag_name"].lstrip("v")
-        if not dev and x["prerelease"]:
-            dev = x["tag_name"].lstrip("v")
-        if latest and dev:
-            break
+        tag = x["tag_name"].lstrip("v")
+
+        if x["prerelease"]:
+            if dev is None:
+                dev = tag
+        else:
+            if latest is None:
+                latest = tag
 
     return latest, dev
 
-def trigger(src):
+def trigger(src, mode=None):
     print(f"[+] Trigger build: {src}")
-    subprocess.run(
-        ["gh", "workflow", "run", "build.yml", "-f", f"source={src}"],
-        check=True
-    )
+    cmd = ["gh", "workflow", "run", "build.yml", "-f", f"source={src}"]
+    if mode:
+        cmd += ["-f", f"mode={mode}"]
+    subprocess.run(cmd, check=True)
 
 def main():
     print("[+] Resolver started")
 
     cfg = load_config()
-    cfg_text = Path(CONFIG_FILE).read_text()
 
     subprocess.run(["git","fetch","origin","state"], check=False)
 
@@ -211,11 +218,7 @@ def main():
         print("  stored latest   :", stored_latest)
         print("  stored dev      :", stored_dev)
 
-        stable_changed = latest_stable and latest_stable != stored_latest
-
-        if latest_stable and stored_latest is None and stored_dev is None:
-            changed.append(("stable", src))
-            continue
+        stable_changed = latest_stable and (stored_latest is None or Version(latest_stable) > Version(stored_latest))
 
         if stable_changed:
             changed.append(("stable", src))
@@ -225,7 +228,7 @@ def main():
 
         if dev_changed:
             dev_base = latest_dev.split("-dev", 1)[0]
-            if stored_latest and dev_base <= stored_latest:
+            if stored_latest and Version(dev_base) <= Version(stored_latest):
                 continue
             changed.append(("dev", src))
 
@@ -239,40 +242,7 @@ def main():
             channel, src = item
 
             if channel == "stable":
-                subprocess.run(["git","checkout","main"], check=True)
-
-                lines = []
-
-                current_block = None
-                current_src = global_patches
-
-                for line in cfg_text.splitlines():
-
-                    stripped = line.strip()
-
-                    if stripped.startswith("[") and stripped.endswith("]"):
-                        current_block = stripped
-                        current_src = global_patches
-                        lines.append(line)
-                        continue
-
-                    if "=" in line and current_block:
-                        key, val = line.split("=",1)
-                        key = key.strip()
-
-                        if key == "patches-source":
-                            current_src = val.strip().strip('"')
-
-                        if current_src == src and key in {"patches-version", "cli-version"}:
-                            continue
-
-                    lines.append(line)
-
-                Path(CONFIG_FILE).write_text("\n".join(lines))
-
-                trigger(src)
-                subprocess.run(["git","checkout","state"], check=False)
-
+                trigger(src, "stable")
             else:
                 trigger(src)
 

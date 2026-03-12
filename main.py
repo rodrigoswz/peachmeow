@@ -14,10 +14,12 @@ VERSIONS_FILE = "versions.json"
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--source")
+ap.add_argument("--mode")
 ap.add_argument("--dry-run", action="store_true")
 args = ap.parse_args()
 
 BUILD_SOURCE = args.source
+BUILD_MODE = args.mode
 DRY = args.dry_run
 
 SIGNING_KEYSTORE_PASSWORD = require_env("SIGNING_KEYSTORE_PASSWORD")
@@ -209,13 +211,13 @@ for table, app in apps.items():
     if src not in targets:
         continue
 
-    mode = app.get("patches-version") or global_patch_mode
+    mode = ("latest" if BUILD_MODE == "stable" else BUILD_MODE) or (app.get("patches-version") or global_patch_mode)
     PATCH_VERSION, IS_PRE = resolve(src, mode)
 
     used_patch_versions[src] = PATCH_VERSION
 
     cli_src = app.get("cli-source") or global_cli
-    cli_mode = app.get("cli-version") or global_cli_mode
+    cli_mode = ("latest" if BUILD_MODE == "stable" else BUILD_MODE) or (app.get("cli-version") or global_cli_mode)
 
     version_key = f"{cli_src}@{cli_mode}"
 
