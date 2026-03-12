@@ -91,12 +91,12 @@ def resolve_channels(repo):
 
     return latest, dev
 
-def trigger(src):
+def trigger(src, mode=None):
     print(f"[+] Trigger build: {src}")
-    subprocess.run(
-        ["gh", "workflow", "run", "build.yml", "-f", f"source={src}"],
-        check=True
-    )
+    cmd = ["gh", "workflow", "run", "build.yml", "-f", f"source={src}"]
+    if mode:
+        cmd += ["-f", f"mode={mode}"]
+    subprocess.run(cmd, check=True)
 
 def main():
     print("[+] Resolver started")
@@ -279,7 +279,7 @@ def main():
                 print(Path(CONFIG_FILE).read_text())
                 print("----- END CONFIG -----")
 
-                trigger(src)
+                trigger(src, "stable")
 
             else:
                 trigger(src)
