@@ -6,3 +6,10 @@ app-source = "rjaakash/peachmeow-store"
 patches-version = "all"
 cli-version = "all"
 patcher-args = "-e 'Hide Shorts components' -OhideShortsAppShortcut=true -OhideShortsWidget=true"
+
+["YouTube Material You"]
+package-name = "com.google.android.youtube"
+app-source = "rjaakash/peachmeow-store"
+patches-version = "all"
+cli-version = "all"
+patcher-args = "-e 'Hide Shorts components' -OhideShortsAppShortcut=true -OhideShortsWidget=true -e 'Theme' -odarkThemeBackgroundColor='Material You' olightThemeBackgroundColor='Material You'"
