@@ -248,7 +248,7 @@ def main():
                 lines = []
 
                 current_block = None
-                current_src = global_patches
+                current_src = None
 
                 for line in cfg_text.splitlines():
 
@@ -256,7 +256,7 @@ def main():
 
                     if stripped.startswith("[") and stripped.endswith("]"):
                         current_block = stripped
-                        current_src = global_patches
+                        current_src = None
                         lines.append(line)
                         continue
 
@@ -267,7 +267,8 @@ def main():
                         if key == "patches-source":
                             current_src = val.strip().strip('"')
 
-                        if current_src == src and key in {"patches-version", "cli-version"}:
+                        src_match = (current_src == src)
+                        if src_match and key in {"patches-version", "cli-version"}:
                             continue
 
                     lines.append(line)
@@ -275,7 +276,6 @@ def main():
                 Path(CONFIG_FILE).write_text("\n".join(lines))
 
                 trigger(src)
-                subprocess.run(["git","checkout","state"], check=False)
 
             else:
                 trigger(src)
