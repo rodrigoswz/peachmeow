@@ -102,7 +102,6 @@ def main():
     print("[+] Resolver started")
 
     cfg = load_config()
-    cfg_text = Path(CONFIG_FILE).read_text()
 
     subprocess.run(["git","fetch","origin","state"], check=False)
 
