@@ -14,12 +14,10 @@ VERSIONS_FILE = "versions.json"
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--source")
-ap.add_argument("--mode")
 ap.add_argument("--dry-run", action="store_true")
 args = ap.parse_args()
 
 BUILD_SOURCE = args.source
-BUILD_MODE = args.mode
 DRY = args.dry_run
 
 SIGNING_KEYSTORE_PASSWORD = require_env("SIGNING_KEYSTORE_PASSWORD")
