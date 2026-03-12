@@ -267,7 +267,7 @@ def main():
                 Path(CONFIG_FILE).write_text("\n".join(lines))
 
                 trigger(src)
-                subprocess.run(["git","checkout","state"], check=True)
+                subprocess.run(["git","checkout","state"], check=False)
 
             else:
                 trigger(src)
