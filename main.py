@@ -479,6 +479,34 @@ if is_prerelease:
 
 subprocess.run(cmd, check=True)
 
+subprocess.run(["git","fetch","origin",STATE_BRANCH],check=False)
+
+remote_check = subprocess.run(
+    ["git","ls-remote","--heads","origin",STATE_BRANCH],
+    capture_output=True,
+    text=True
+)
+
+if remote_check.stdout.strip() == "":
+    subprocess.run(["git","checkout","--orphan",STATE_BRANCH],check=True)
+    subprocess.run(["git","rm","-rf","."],check=False)
+    subprocess.run(["git","clean","-fd"],check=False)
+
+    if not Path(VERSIONS_FILE).exists():
+        Path(VERSIONS_FILE).write_text("{}\n")
+
+    subprocess.run(["git","config","user.name","github-actions[bot]"],check=True)
+    subprocess.run(["git","config","user.email","41898282+github-actions[bot]@users.noreply.github.com"],check=True)
+
+    subprocess.run(["git","add",VERSIONS_FILE],check=True)
+    subprocess.run(["git","commit","-m",INIT_MSG],check=True)
+
+    subprocess.run(["git","push","-u","origin",STATE_BRANCH],check=True)
+    subprocess.run(["git","fetch","origin",STATE_BRANCH],check=False)
+
+if remote_check.stdout.strip() != "":
+    subprocess.run(["git","checkout","-B",STATE_BRANCH,f"origin/{STATE_BRANCH}"],check=True)
+
 versions = {}
 if Path(VERSIONS_FILE).exists():
     versions = json.loads(Path(VERSIONS_FILE).read_text())
@@ -492,7 +520,10 @@ else:
 
 Path(VERSIONS_FILE).write_text(json.dumps(versions, indent=2))
 
-subprocess.run(["git","fetch","origin",STATE_BRANCH],check=False)
+subprocess.run(["git","config","user.name","github-actions[bot]"],check=True)
+subprocess.run(["git","config","user.email","41898282+github-actions[bot]@users.noreply.github.com"],check=True)
+
+subprocess.run(["git","add",VERSIONS_FILE],check=True)
 
 remote_check = subprocess.run(
     ["git","ls-remote","--heads","origin",STATE_BRANCH],
@@ -500,34 +531,26 @@ remote_check = subprocess.run(
     text=True
 )
 
-if remote_check.stdout.strip() == "":
-    subprocess.run(["git","checkout","--orphan",STATE_BRANCH],check=True)
-    subprocess.run(["git","rm","-rf","."],check=False)
-    subprocess.run(["git","clean","-fd"],check=False)
-    
-    if not Path(VERSIONS_FILE).exists():
-        Path(VERSIONS_FILE).write_text("{}\n")
-
-    subprocess.run(["git","config","user.name","github-actions[bot]"],check=True)
-    subprocess.run(["git","config","user.email","41898282+github-actions[bot]@users.noreply.github.com"],check=True)
-
-    subprocess.run(["git","add",VERSIONS_FILE],check=True)
-    subprocess.run(["git","commit","-m",INIT_MSG],check=True)
-    subprocess.run(["git","push","-u","origin",STATE_BRANCH],check=True)
-
-else:
-    Path(VERSIONS_FILE).unlink(missing_ok=True)
-    subprocess.run(["git","checkout","-B",STATE_BRANCH,f"origin/{STATE_BRANCH}"],check=True)
-
-    subprocess.run(["git","config","user.name","github-actions[bot]"],check=True)
-    subprocess.run(["git","config","user.email","41898282+github-actions[bot]@users.noreply.github.com"],check=True)
-
-    subprocess.run(["git","add",VERSIONS_FILE],check=True)
-
-    msg = f"release: {patch_src} → {patch_ver}"
-
+r = subprocess.run(["git","diff","--cached","--quiet"])
+if r.returncode != 0:
     subprocess.run(["git","commit","-m",msg],check=True)
-    subprocess.run(["git","push"],check=True)
+
+for _ in range(5):
+    r = subprocess.run(["git","pull","--rebase","origin",STATE_BRANCH])
+
+    if r.returncode != 0:
+        subprocess.run(["git","rebase","--abort"], check=False)
+        subprocess.run(["git","reset","--hard","origin/"+STATE_BRANCH])
+        subprocess.run(["git","add",VERSIONS_FILE], check=True)
+
+        r = subprocess.run(["git","diff","--cached","--quiet"])
+        if r.returncode != 0:
+            subprocess.run(["git","commit","-m",msg], check=True)
+
+    push = subprocess.run(["git","push","origin",STATE_BRANCH])
+
+    if push.returncode == 0:
+        break
 
 active_brands = {a.get("morphe-brand") or global_brand for a in apps.values()}
 cleanup_old_releases(active_brands, current_tag=tag)
