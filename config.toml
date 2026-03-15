@@ -6,3 +6,21 @@ app-source = "rjaakash/peachmeow-store"
 patches-version = "all"
 cli-version = "all"
 patcher-args = "-e 'Hide Shorts components' -OhideShortsAppShortcut=true -OhideShortsWidget=true"
+
+["Photos"]
+app-name = "Photos"
+package-name = "com.google.android.apps.photos"
+app-source = "rjaakash/peachmeow-store"
+patches-source = "RookieEnough/De-ReVanced"
+morphe-brand = "De-ReVanced"
+version = "7.67.0.882706237"
+patcher-args = "-e 'Enable DCIM folders backup control'"
+
+["Proton VPN"]
+app-name = "ProtonVPN"
+package-name = "ch.protonvpn.android"
+app-source = "ProtonVPN/android-app"
+patches-source = "hoo-dles/morphe-patches"
+morphe-brand = "hoo-dles"
+version = "5.16.88.0"
+patcher-args = "-f"
