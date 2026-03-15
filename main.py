@@ -211,13 +211,13 @@ for table, app in apps.items():
     if src not in targets:
         continue
 
-    mode = ("latest" if BUILD_MODE == "stable" else BUILD_MODE) or (app.get("patches-version") or global_patch_mode)
+    mode = ("latest" if BUILD_MODE == "stable" else "dev" if BUILD_MODE == "pre-release" else BUILD_MODE) or (app.get("patches-version") or global_patch_mode)
     PATCH_VERSION, IS_PRE = resolve(src, mode)
 
     used_patch_versions[src] = PATCH_VERSION
 
     cli_src = app.get("cli-source") or global_cli
-    cli_mode = ("latest" if BUILD_MODE == "stable" else BUILD_MODE) or (app.get("cli-version") or global_cli_mode)
+    cli_mode = ("latest" if BUILD_MODE == "stable" else "dev" if BUILD_MODE == "pre-release" else BUILD_MODE) or (app.get("cli-version") or global_cli_mode)
 
     version_key = f"{cli_src}@{cli_mode}"
 
@@ -471,6 +471,17 @@ Path("release.md").write_text("\n".join(lines))
 
 tag = f"{release_brand}-v{patch_ver}"
 release_name = f"{release_brand.replace('-', ' ')} 🐱 PeachMeow v{patch_ver}"
+
+check = subprocess.run(
+    ["gh","release","view",tag],
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL
+)
+
+if check.returncode == 0:
+    subprocess.run(["gh","release","delete",tag,"-y"],check=False)
+    subprocess.run(["git","push","origin",f":refs/tags/{tag}"],check=False)
+    subprocess.run(["git","tag","-d",tag],check=False,stderr=subprocess.DEVNULL)
 
 cmd = ["gh","release","create",tag,"-t",release_name,"-F","release.md"] + [f"build/{x}" for _, x,_,_ in built]
 
