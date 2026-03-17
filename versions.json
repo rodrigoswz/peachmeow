@@ -3,6 +3,10 @@
     "dev": {
       "patch": "1.20.0-dev.1",
       "cli": "1.5.0"
+    },
+    "latest": {
+      "patch": "1.19.0",
+      "cli": "1.5.0"
     }
   },
   "hoo-dles/morphe-patches": {
