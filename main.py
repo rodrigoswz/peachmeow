@@ -536,11 +536,7 @@ subprocess.run(["git","config","user.email","41898282+github-actions[bot]@users.
 
 subprocess.run(["git","add",VERSIONS_FILE],check=True)
 
-remote_check = subprocess.run(
-    ["git","ls-remote","--heads","origin",STATE_BRANCH],
-    capture_output=True,
-    text=True
-)
+msg = f"release: {patch_src} → {patch_ver}"
 
 r = subprocess.run(["git","diff","--cached","--quiet"])
 if r.returncode != 0:
