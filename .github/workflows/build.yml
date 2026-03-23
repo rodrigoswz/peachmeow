@@ -33,7 +33,7 @@ jobs:
 
       - name: Restore keystore
         run: |
-          echo "${{ secrets.SIGNING_KEYSTORE_B64 }}" | base64 -d > morphe-release.bks
+          echo "${{ secrets.SIGNING_KEYSTORE_B64 }}" | base64 -d > morphe-release.keystore
 
       - name: Authenticate gh
         run: echo "${{ secrets.PEACHMEOW_GITHUB_PAT }}" | gh auth login --with-token
