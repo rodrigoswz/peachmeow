@@ -376,7 +376,7 @@ for table, app in apps.items():
 
     run([
         "java","-jar","tools/morphe-cli.jar","patch",
-        "--keystore","morphe-release.bks",
+        "--keystore","morphe-release.keystore",
         "--keystore-password",SIGNING_KEYSTORE_PASSWORD,
         "--keystore-entry-alias",SIGNING_KEY_ALIAS,
         "--keystore-entry-password",SIGNING_KEY_PASSWORD,
